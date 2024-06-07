@@ -1,10 +1,11 @@
 const express = require('express');
 const Product = require('./Product');
+const verifyToken = require('./Middleware');
 
 module.exports = function(io) {
     const router = express.Router();
 
-    router.get('/', async (req, res) => {
+    router.get('/', verifyToken, async (req, res) => {
         const { page = 1, limit = 10, category, available, sortByPrice } = req.query;
     
         let query = {};
@@ -49,7 +50,7 @@ module.exports = function(io) {
         }
     });
 
-    router.get('/:id', async (req, res) => {
+    router.get('/:id', verifyToken, async (req, res) => {
         try {
             const product = await Product.findById(req.params.id);
             if (!product) {
@@ -73,7 +74,7 @@ module.exports = function(io) {
         }
     });
 
-    router.post('/', async (req, res) => {
+    router.post('/', verifyToken, async (req, res) => {
         const { title, description, price, code, stock, category, thumbnails = [] } = req.body;
         const product = new Product({ title, description, price, code, stock, category, thumbnails });
         
@@ -86,7 +87,7 @@ module.exports = function(io) {
         }
     });
 
-    router.put('/:id', async (req, res) => {
+    router.put('/:id', verifyToken, async (req, res) => {
         try {
             const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
             io.emit('productUpdated', updatedProduct);
@@ -96,7 +97,7 @@ module.exports = function(io) {
         }
     });
 
-    router.delete('/:id', async (req, res) => {
+    router.delete('/:id', verifyToken, async (req, res) => {
         try {
             const deletedProduct = await Product.findByIdAndDelete(req.params.id);
             io.emit('productDeleted', { id: req.params.id });

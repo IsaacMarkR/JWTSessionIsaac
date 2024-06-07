@@ -5,6 +5,8 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const { engine } = require('express-handlebars');
 const Product = require('./Product');
+const authRoutes = require('./Sessions');
+const verifyToken = require('./Middleware');
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
@@ -19,8 +21,9 @@ const productRoutes = require('./productsRoutesMongo')(io);
 const cartRoutes = require('./cartRoutesMongo')(io);
 
 app.use(express.json());
-app.use('/products', productRoutes);
+app.use('/products', verifyToken, productRoutes);
 app.use('/api/carts', cartRoutes);
+app.use('/api/auth', authRoutes);
 
 app.get('/', async (req, res) => {
     res.render('realTimeProducts', { layout: 'main' });
